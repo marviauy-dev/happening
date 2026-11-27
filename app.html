@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101211">
+  <base target="_top">
+  <title>Happening · Álbum compartido</title>
+  <style>
+
+    /* 01. PALETA: EDITAR AQUÍ LOS COLORES DEL PORTAL. */
+    :root {
+      color-scheme: dark;
+      --fondo: #101211;
+      --superficie: #191c19;
+      --superficie-elevada: #20241f;
+      --texto: #f0eee6;
+      --texto-secundario: #a5aa9f;
+      --acento: #d4bc83;
+      --acento-claro: #f2e4b9;
+      --acento-suave: #d4bc8312;
+      --borde: #d9c89d24;
+      --borde-suave: #ffffff0c;
+      --fondo-visor: #0b0e0c;
+      --curva: cubic-bezier(.2, .7, .2, 1);
+      --ancho-maximo: 1240px;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--fondo); scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--texto);
+      background:
+        radial-gradient(ellipse 75% 440px at 8% 0%, #b89b5e12, transparent 80%),
+        radial-gradient(ellipse 45% 350px at 100% 180px, #d5c49407, transparent 85%),
+        var(--fondo);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.sin-desplazamiento { overflow: hidden; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    button:disabled { opacity: .42; cursor: default; }
+    a { color: inherit; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .boton-icono { display: inline-grid; place-items: center; min-width: 44px; height: 44px; padding: 10px; border: 0; border-radius: 50%; background: transparent; }
+    .boton-icono:hover { background: #ffffff08; }
+
+    /* 02. BARRA SUPERIOR Y LOGO CON CÁMARA. */
+    .barra-superior { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--borde-suave); background: #101310; }
+    .barra-superior__interior { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 12px; max-width: var(--ancho-maximo); margin: auto; padding: max(12px, env(safe-area-inset-top)) 24px 12px; position: relative; }
+    .marca { display: inline-flex; align-items: center; justify-content: center; justify-self: center; min-width: 0; font-size: 22px; font-weight: 580; letter-spacing: -.6px; text-decoration: none;}
+    .marca__punto { color: var(--acento); }
+    .boton-ayuda { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 10px; border: 0; border-radius: 50%; background: transparent; color: var(--acento); line-height: 1; transition: color .2s ease, opacity .32s cubic-bezier(.22, 1, .36, 1); }
+    .boton-ayuda:hover { color: var(--acento-claro); }
+    .boton-ayuda svg { width: 20px; height: 20px; }
+
+    /* El ícono + de la barra aparece cuando el botón de la portada queda debajo. */
+    #agregarFotosSuperior {
+      opacity: 0;
+      transform: scale(.7);
+      pointer-events: none;
+    
+      transition:
+        opacity .25s var(--curva),
+        transform .25s var(--curva);
+    }
+
+    #agregarFotosSuperior.visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    /* Mantiene un brillo fijo si se prefiere reducir el movimiento. */
+    @media (prefers-reduced-motion: reduce) {
+      body.pista-activa #abrirInformacion {
+        animation: none;
+      
+        box-shadow:
+          0 0 0 3px rgb(255 210 155 / 12%),
+          0 0 16px 4px rgb(255 210 155 / 30%);
+      }
+    }
+
+    /* 03. PORTADA Y BOTONES: LOS REFLEJOS SOLO ESTÁN EN LA INTERFAZ. */
+    .pagina { max-width: var(--ancho-maximo); margin: auto; padding: 0 24px calc(125px + env(safe-area-inset-bottom)); }
+    .portada { padding: 58px 0 40px; animation: aparecer .7s var(--curva) both; }
+    .antetitulo { display: flex; align-items: center; gap: 10px; margin: 0 0 22px; color: var(--acento); font-size: 9px; font-weight: 600; letter-spacing: .19em; text-transform: uppercase; }
+    /*.antetitulo::before { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, var(--acento), #d4bc8320); }*/
+    /*.antetitulo::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: rgb(76 217 100); box-shadow: 0 0 8px rgb(76 217 100 / 55%); animation: pulsoEnVivo 1.6s ease-in-out infinite; vertical-align: middle; }*/
+    .antetitulo::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: rgb(112 224 144); box-shadow: 0 0 8px rgb(112 224 114 / 55%); animation: pulsoEnVivo 1.6s ease-in-out infinite; vertical-align: middle; }
+    h1 { max-width: 820px; margin: 0 0 22px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(44px, 6.5vw, 76px); font-weight: 400; letter-spacing: -.055em; line-height: 1.04; }
+    h1 em { color: var(--acento-claro); font-weight: 400; }
+    .introduccion { max-width: 390px; margin: 0; color: var(--texto-secundario); font-size: 14px; line-height: 1.85; }
+    .portada__acciones { --relleno-izquierdo: 11.5px; display: flex; align-items: center; justify-content: flex-start; gap: 14px; margin-top: 30px; }
+    .portada__nota { max-width: 200px; margin: 0; color: var(--texto-secundario); font-size: 11px; line-height: 1.7; text-align: left; }
+    .boton-principal { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 13px 22px 13px var(--relleno-izquierdo, 22px); border: 1px solid #f5e4b24a; border-radius: 100px; background: linear-gradient(115deg, #c1a66d 0%, #eee1b7 43%, #d9c590 68%, #c6ad76 100%); background-size: 155% 100%; color: #25291e; box-shadow: inset 0 1px 0 #fffbed75, 0 6px 22px #d6bd7d08; font-size: 13px; font-weight: 650; line-height: 1.3; text-decoration: none; transition: background-position .5s var(--curva); }
+    .boton-principal:hover { background-position: 100% 0; }
+    .boton-principal svg { width: 19px; height: 19px; }
+    .boton-secundario { min-height: 44px; padding: 12px 22px; border: 1px solid var(--borde); border-radius: 100px; background: #d4bc8305; color: var(--acento-claro); font-size: 12px; }
+    .boton-secundario:hover { background: var(--acento-suave); }
+    .espacio-boton-portada { display: inline-flex; align-items: center; flex: 0 0 auto; vertical-align: middle; }
+
+    /* 04. GALERÍA ESTABLE: GRID, SIN SOMBRAS NI DEGRADADOS SOBRE LAS FOTOS. */
+    .cabecera-album { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 0 18px; border-top: 1px solid var(--borde); }
+    .titulo-album { margin: 0; font-size: 13px; font-weight: 550; letter-spacing: -.02em; }
+    .herramientas-album { display: flex; align-items: center; gap: 8px; }
+    .boton-actualizar { color: var(--texto-secundario); }
+    .boton-actualizar.actualizando svg { animation: girar 1s linear infinite; }
+    .selector-vista { display: flex; padding: 3px; border: 1px solid var(--borde-suave); border-radius: 100px; background: #171b17; }
+    .selector-vista button { display: grid; place-items: center; min-width: 40px; height: 34px; border: 0; border-radius: 100px; background: transparent; color: var(--texto-secundario); }
+    .selector-vista button[aria-pressed="true"] { background: #d4bc8319; color: var(--acento-claro); }
+    .selector-vista svg { width: 17px; height: 17px; }
+    .galeria { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .foto { position: relative; display: block; min-width: 0; aspect-ratio: 4 / 5; padding: 0; overflow: hidden; border: 0; border-radius: 15px; background: var(--superficie-elevada); box-shadow: none; isolation: isolate; }
+    .foto img { display: block; width: 100%; height: 100%; object-fit: cover; image-orientation: from-image; opacity: 0; transition: opacity .4s ease; }
+    .foto.cargada img { opacity: 1; }
+    .foto.con-error::after { content: "Tocá para abrir"; position: absolute; inset: 0; display: grid; place-items: center; background: var(--superficie-elevada); color: var(--texto-secundario); font-size: 11px; }
+    .galeria.compacta { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .galeria.compacta .foto { aspect-ratio: 1; border-radius: 9px; }
+    .esqueleto { aspect-ratio: 4 / 5; border-radius: 15px; background: #232820; animation: respirar 1.5s ease-in-out infinite alternate; }
+    .esqueleto:nth-child(2n) { animation-delay: .3s; }
+    .aviso { margin-bottom: 16px; padding: 12px 16px; border: 1px solid var(--borde); border-radius: 14px; background: var(--acento-suave); color: var(--acento-claro); font-size: 12px; line-height: 1.7; }
+    .aviso.error { background: #37251d; border-color: #e8ac7f29; color: #e6b999; }
+    .album-vacio { padding: 56px 20px 65px; border: 1px solid var(--borde); border-radius: 24px; background: linear-gradient(145deg, #d4bc8309, transparent 70%), var(--superficie); text-align: center; }
+    .album-vacio__simbolo { display: grid; place-items: center; width: 62px; height: 62px; margin: 0 auto 20px; border: 1px solid var(--borde); border-radius: 22px; background: var(--acento-suave); color: var(--acento); }
+    .album-vacio h2 { margin: 0 0 12px; font-family: Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -1px; }
+    .album-vacio p { max-width: 300px; margin: 0 auto 22px; color: var(--texto-secundario); font-size: 13px; line-height: 1.8; }
+    .mas-fotos { margin-top: 30px; text-align: center; }
+    .firma { margin: 40px 0 0; color: var(--texto-secundario); font-family: Georgia, serif; font-size: 14px; font-style: italic; text-align: center; }
+
+    /* 06. VENTANAS Y X DE CIERRE: SIN ARO NI BORDE. */
+    dialog { padding: 0; border: 1px solid var(--borde); background: var(--superficie); color: var(--texto); }
+    dialog::backdrop { background: #050906e8; }
+    dialog[open] { animation: abrir-ventana .25s var(--curva); }
+    .ventana { width: min(540px, calc(100% - 24px)); max-height: calc(100dvh - 28px); overflow: auto; overscroll-behavior: contain; border-radius: 28px; box-shadow: 0 30px 100px #0008; }
+    .ventana__cabecera { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px 8px 24px; background: var(--superficie); }
+    .ventana__etiqueta { margin: 0; color: var(--acento); font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+    .ventana__contenido { padding: 10px 26px 28px; }
+    .ventana h2 { margin: 0 0 14px; font-family: Georgia, serif; font-size: 36px; font-weight: 400; letter-spacing: -1.5px; line-height: 1.1; }
+    .ventana__descripcion { margin: 0 0 22px; color: var(--texto-secundario); font-size: 13px; line-height: 1.8; }
+    .boton-cerrar,
+    .boton-cerrar:hover,
+    .boton-cerrar:focus,
+    .boton-cerrar:focus-visible,
+    .boton-cerrar:active {
+      display: inline-grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; margin-left: auto; padding: 11px; border: 0; border-radius: 0; outline: none; box-shadow: none; background: transparent; color: var(--texto-secundario); -webkit-appearance: none; appearance: none;
+    }
+    .boton-cerrar:focus-visible svg { stroke-width: 2.6; }
+    .boton-cerrar:hover svg { stroke-width: 2; }
+
+    /* 07. SELECCIÓN Y CARGA DE FOTOS. */
+    .selector-archivos { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 160px; padding: 24px; border: 1px dashed #d4bc8359; border-radius: 20px; background: linear-gradient(145deg, #d4bc830c, transparent 70%), #151914; }
+    .selector-archivos.arrastrando { background: #d4bc8314; border-color: var(--acento); }
+    .selector-archivos__simbolo { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--borde); border-radius: 50%; background: var(--acento-suave); color: var(--acento-claro); }
+    .selector-archivos strong { font-size: 14px; font-weight: 550; }
+    .selector-archivos small { color: var(--texto-secundario); font-size: 11px; line-height: 1.5; }
+    .seleccion { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 16px; }
+    .seleccion__foto { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #101410; }
+    .seleccion__foto img { display: block; width: 100%; height: 100%; object-fit: contain; image-orientation: from-image; }
+    .seleccion__quitar { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 36px; height: 36px; padding: 8px; border: 0; border-radius: 50%; background: #101410dc; color: white; }
+    .seleccion__quitar svg { width: 16px; height: 16px; }
+    .estado-carga { margin: 16px 0 18px; color: var(--texto-secundario); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+    .estado-carga.error { color: #e6b999; }
+    .estado-carga.exito { color: var(--acento-claro); }
+    .ancho-completo { width: 100%; }
+    .progreso { display: block; width: 100%; height: 5px; margin-top: 18px; accent-color: var(--acento); }
+    .nota-carga { margin: 15px 0 0; color: var(--texto-secundario); font-size: 10px; line-height: 1.7; text-align: center; }
+
+    /* 08. CÓMO FUNCIONA. */
+    .pasos { display: grid; gap: 20px; margin: 24px 0; padding: 0; list-style: none; }
+    .pasos li { display: grid; grid-template-columns: 30px 1fr; gap: 14px; align-items: start; }
+    .paso__numero { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid var(--borde); border-radius: 50%; background: var(--acento-suave); color: var(--acento); font-family: Georgia, serif; font-size: 14px; }
+    .pasos h3 { margin: 3px 0 6px; font-size: 13px; font-weight: 550; }
+    .pasos p { margin: 0; color: var(--texto-secundario); font-size: 12px; line-height: 1.7; }
+    .nota-privacidad { padding-top: 18px; border-top: 1px solid var(--borde); color: var(--texto-secundario); font-size: 11px; line-height: 1.8; }
+
+    /* 09. VISOR COMPLETO: X A LA DERECHA, SIN TEXTO DE MARCA. */
+    .visor { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; overflow: hidden; border: 0; border-radius: 0; background: var(--fondo-visor); color: var(--texto); }
+    .visor[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .visor__cabecera { display: flex; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 18px 12px; }
+    .visor__escenario { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; touch-action: pan-y pinch-zoom; }
+    .visor__imagen { display: block; width: 100%; height: 100%; object-fit: contain; image-orientation: from-image; animation: revelar-foto .25s ease both; }
+    .visor__estado { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 60px; color: var(--texto-secundario); font-size: 12px; line-height: 1.7; text-align: center; }
+    .indicador-carga { width: 23px; height: 23px; border: 2px solid #d4bc8326; border-top-color: var(--acento-claro); border-radius: 50%; animation: girar 1s linear infinite; }
+    .visor__flecha { position: absolute; top: 50%; z-index: 2; margin-top: -22px; background: #0b0e0c80; color: #ecece3; }
+    .visor__flecha:hover { background: #0b0e0cb0; }
+    .visor__anterior { left: 12px; }
+    .visor__siguiente { right: 12px; }
+    .visor__pie { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px max(24px, env(safe-area-inset-bottom)); }
+    .visor__posicion { color: var(--texto-secundario); font-size: 11px; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+    .boton-descargar { min-height: 46px; padding: 12px 22px; }
+    .mensaje-flotante { position: fixed; bottom: 106px; left: 50%; z-index: 60; width: max-content; max-width: calc(100vw - 40px); padding: 12px 18px; transform: translateX(-50%); border: 1px solid var(--borde); border-radius: 100px; background: #22271f; color: var(--texto); font-size: 12px; line-height: 1.5; text-align: center; pointer-events: none; }
+
+    /* 10. ANIMACIONES Y TAMAÑOS DE PANTALLA. */
+    @keyframes pulsoEnVivo { 0%, 100% { transform: scale(1); opacity: 0.85; box-shadow: 0 0 6px rgb(112 225 144 / 40%); } 50% { transform: scale(1.18); opacity: 1; box-shadow: 0 0 12px rgb(112 224 144 / 70%); } }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes abrir-ventana { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: none; } }
+    @keyframes revelar-foto { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes respirar { to { opacity: .45; } }
+    @keyframes girar { to { transform: rotate(360deg); } }
+    @media (min-width: 900px) {
+      .portada { padding: 70px 0 46px; }
+      .portada__acciones { max-width: 620px; }
+      .portada__nota { max-width: 220px; text-align: left; }
+      .galeria .foto { border-radius: 18px; }
+      .visor__escenario { padding: 0 70px; }
+      .visor__imagen { max-width: 1500px; }
+    }
+    @media (max-width: 899px) {
+      .galeria { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .galeria.compacta { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .pagina { padding-left: 18px; padding-right: 18px; }
+      .barra-superior__interior { padding-left: 18px; padding-right: 18px; }
+      .portada { padding-top: 40px; padding-bottom: 32px; }
+      h1 { font-size: clamp(41px, 11vw, 62px); }
+      .portada__acciones { gap: 12px; }
+      .portada__nota { max-width: 180px; font-size: 10px; }
+      .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .galeria.compacta { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+      .cabecera-album { padding: 14px 0; }
+      .foto { border-radius: 12px; }
+      .ventana { width: 100%; max-width: none; max-height: 94dvh; margin: auto 0 0; padding-bottom: env(safe-area-inset-bottom); border: 1px solid var(--borde); border-bottom: 0; border-radius: 28px 28px 0 0; }
+      .visor__cabecera { padding-left: 18px; padding-right: 10px; }
+      .visor__pie { padding-left: 20px; padding-right: 20px; }
+      .visor__flecha { width: 40px; min-width: 40px; background: #0b0e0c40; }
+      .visor__anterior { left: 3px; }
+      .visor__siguiente { right: 3px; }
+      .visor__flecha svg { width: 18px; }
+      .firma { font-size: 13px; }
+      .pista-ayuda { right: 18px; }
+    }
+    @media (max-width: 350px) {
+      .marca { gap: 7px; font-size: 14px; }
+      .boton-ayuda { gap: 5px; font-size: 10px; }
+      .portada__nota { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .indicador-carga { border-color: var(--acento); }
+    }
+
+    /* 11. PANEL DE ADMINISTRACIÓN */   
+
+    .boton-administracion {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 45;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid var(--borde);
+      border-radius: 100px;
+      background: #191c19f2;
+      color: var(--acento-claro);
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px #00000055;
+      backdrop-filter: blur(12px);
+    }   
+
+    .boton-administracion:hover {
+      background: var(--acento-suave);
+    }   
+
+    .panel-administracion {
+      position: fixed;
+      inset: 0;
+      margin: auto;
+      width: min(960px, calc(100% - 24px));
+      max-width: calc(100% - 24px);
+      max-height: calc(100dvh - 28px);
+    }
+
+    @media (max-width: 600px) {
+      .panel-administracion {
+        inset: auto 0 0 0;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        max-height: 94dvh;
+        border: 1px solid var(--borde);
+        border-bottom: 0;
+        border-radius: 28px 28px 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    }
+    .panel-administracion .ventana__contenido {
+      padding-bottom: 24px;
+    }   
+
+    .admin-estado {
+      margin: 0 0 18px;
+      color: var(--texto-secundario);
+      font-size: 12px;
+      line-height: 1.6;
+    }   
+
+    .admin-acciones {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }   
+
+    .admin-acciones .boton-secundario {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }   
+
+    .admin-grida {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+    }   
+
+    .admin-foto {
+      overflow: hidden;
+      border: 1px solid var(--borde-suave);
+      border-radius: 18px;
+      background: var(--superficie-elevada);
+    }   
+
+    .admin-foto img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+    }   
+
+    .admin-foto-info {
+      padding: 10px 12px 12px;
+    }   
+
+    .admin-foto-nombre {
+      margin: 0 0 10px;
+      color: var(--texto-secundario);
+      font-size: 10px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }   
+
+    .admin-foto-botones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }   
+
+    .admin-foto-botones button {
+      min-height: 34px;
+      padding: 7px 8px;
+      border: 1px solid var(--borde);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--texto);
+      font-size: 11px;
+      font-weight: 600;
+    }   
+
+    .admin-foto-botones .aprobar {
+      border-color: #76d96444;
+      color: #8ee08a;
+    }   
+
+    .admin-foto-botones .aprobar:hover {
+      background: #76d96414;
+    }   
+
+    .admin-foto-botones .bloquear {
+      border-color: #e8ac7f33;
+      color: #e6b999;
+    }   
+
+    .admin-foto-botones .bloquear:hover {
+      background: #e8ac7f14;
+    }   
+
+    .admin-vacio {
+      padding: 42px 20px;
+      border: 1px dashed var(--borde);
+      border-radius: 20px;
+      background: var(--acento-suave);
+      color: var(--texto-secundario);
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }   
+
+    .admin-cargando {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      color: var(--texto-secundario);
+      font-size: 12px;
+    }   
+
+    @media (max-width: 600px) {
+      .boton-administracion {
+        right: 14px;
+        bottom: 14px;
+        padding: 9px 13px;
+        font-size: 11px;
+      }   
+
+      .admin-grida {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }   
+
+      .admin-acciones {
+        flex-direction: column;
+        align-items: stretch;
+      }   
+
+      .admin-acciones .boton-secundario {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ICONOS INTERNOS: NO REQUIEREN LIBRERÍAS EXTERNAS. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="icono-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icono-cerrar" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icono-camara" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <symbol id="icono-grilla" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+    <symbol id="icono-compacto" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/></symbol>
+    <symbol id="icono-informacion" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+    <symbol id="icono-derecha" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="icono-izquierda" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="icono-descargar" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5"/></symbol>
+    <symbol id="icono-actualizar" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-1 8M20 4v6h-6"/></symbol>
+  </svg>
+
+  <!-- BARRA SUPERIOR. -->
+  <header class="barra-superior">
+    <div class="barra-superior__interior">
+
+      <button
+        id="agregarFotosSuperior"
+        class="boton-ayuda"
+        type="button"
+        data-abrir-carga
+        aria-label="Agregar fotos"
+        title="Agregar fotos"
+        aria-hidden="true"
+        disabled
+      >
+        <svg id="iconoAgregarSuperior" aria-hidden="true">
+          <use href="#icono-mas"/>
+        </svg>
+      </button>
+
+      <a href="#inicio" class="marca" aria-label="Happening, inicio">
+        <span>happening<span class="marca__punto">.</span></span>
+      </a>
+
+      <button
+        id="abrirInformacion"
+        class="boton-ayuda"
+        type="button"
+        aria-label="Cómo funciona"
+        title="Cómo funciona"
+      >
+        <svg aria-hidden="true">
+          <use href="#icono-informacion"/>
+        </svg>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- PORTADA Y ÁLBUM. -->
+  <main class="pagina" id="inicio">
+    <section class="portada" aria-labelledby="tituloPrincipal">
+      <p class="antetitulo">En este momento</p>
+      <h1 id="tituloPrincipal">Lo que se vive acá,<br><em>se grita en la pantalla.</em></h1>
+      <p class="introduccion">Si no salió en la pantalla, ¿de verdad estuviste en la fiesta?<br>Dale vida al álbum y muéstranos tus mejores momentos.</p>
+      <div class="portada__acciones">
+        <span id="espacioBotonPortada" class="espacio-boton-portada">
+        <button
+          id="compartirFotosPortada"
+          class="boton-principal"
+          data-abrir-carga
+          type="button"
+          aria-label="Compartir fotos"
+        >
+          <svg id="iconoCompartirPortada" aria-hidden="true">
+            <use href="#icono-mas"/>
+          </svg>
+        
+          <span id="textoCompartirPortada">
+            Subir mi foto
+          </span>
+        </button>
+        </span>
+        <p class="portada__nota"><strong>Sin pruebas, no cuenta.</strong><br>¡Muéstranos cómo lo estás pasando!</p>
+      </div>
+    </section>
+    <section aria-labelledby="tituloAlbum">
+      <div class="cabecera-album">
+        <h2 id="tituloAlbum" class="titulo-album">Los mejores recuerdos hasta ahora</h2>
+        <div class="herramientas-album">
+          <button id="actualizarAlbum" class="boton-icono boton-actualizar" type="button" aria-label="Actualizar álbum"><svg aria-hidden="true"><use href="#icono-actualizar"/></svg></button>
+          <div class="selector-vista" role="group" aria-label="Tamaño de las miniaturas">
+            <button id="vistaGrande" type="button" aria-label="Miniaturas grandes" aria-pressed="true"><svg aria-hidden="true"><use href="#icono-grilla"/></svg></button>
+            <button id="vistaCompacta" type="button" aria-label="Miniaturas pequeñas" aria-pressed="false"><svg aria-hidden="true"><use href="#icono-compacto"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div id="avisoAlbum" class="aviso" role="status" hidden></div>
+      <div id="esqueletos" class="galeria" aria-hidden="true"><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div></div>
+      <div id="galeria" class="galeria" aria-busy="true"></div>
+      <div id="albumVacio" class="album-vacio" hidden>
+        <span class="album-vacio__simbolo"><svg aria-hidden="true"><use href="#icono-camara"/></svg></span>
+        <h2>La primera mirada<br>puede ser la tuya.</h2>
+        <p>Este álbum está por empezar. Sumá una foto y dejá el primer recuerdo.</p>
+        <button class="boton-principal" data-abrir-carga type="button">Compartir mi primera foto</button>
+      </div>
+      <div class="mas-fotos"><button id="verMas" class="boton-secundario" type="button" hidden>Ver más momentos</button></div>
+    </section>
+
+    <p class="firma">Lo mejor de estar juntos, es recordarlo juntos.</p>
+  </main>
+
+  <!-- CARGA DE FOTOS. -->
+  <dialog id="ventanaCarga" class="ventana" aria-labelledby="tituloCarga">
+    <div class="ventana__cabecera"><p class="ventana__etiqueta">Sé parte del álbum</p><button id="cerrarCarga" class="boton-cerrar" type="button" aria-label="Cerrar carga"><svg aria-hidden="true"><use href="#icono-cerrar"/></svg></button></div>
+    <div class="ventana__contenido">
+      <h2 id="tituloCarga">Sumá tus momentos.</h2>
+      <p class="ventana__descripcion">Esa sonrisa, ese abrazo, eso que solo vos viste.<br>Elegí las fotos que querés compartir.</p>
+      <button id="elegirArchivos" class="selector-archivos" type="button"><span class="selector-archivos__simbolo"><svg aria-hidden="true"><use href="#icono-mas"/></svg></span><strong>Elegir fotos</strong><small id="limitesCarga">Hasta 10 imágenes · 15 MB por imagen</small></button>
+      <input id="archivosSeleccionados" type="file" accept="image/*" multiple hidden>
+      <div id="seleccion" class="seleccion"></div>
+      <progress id="progresoCarga" class="progreso" value="0" max="1" aria-label="Fotos enviadas" hidden></progress>
+      <p id="estadoCarga" class="estado-carga" role="status" aria-live="polite">Podés revisar tu selección antes de enviarla.</p>
+      <button id="enviarFotos" class="boton-principal ancho-completo" type="button" disabled><svg aria-hidden="true"><use href="#icono-mas"/></svg><span id="textoEnviar">Compartir fotos</span></button>
+      <p class="nota-carga">Compartí solo imágenes que tengas permiso de publicar.</p>
+    </div>
+  </dialog>
+
+  <!-- CÓMO FUNCIONA. -->
+  <dialog id="ventanaInformacion" class="ventana" aria-labelledby="tituloInformacion">
+    <div class="ventana__cabecera"><p class="ventana__etiqueta">Simple, como un buen recuerdo</p><button id="cerrarInformacion" class="boton-cerrar" type="button" aria-label="Cerrar información"><svg aria-hidden="true"><use href="#icono-cerrar"/></svg></button></div>
+    <div class="ventana__contenido">
+      <h2 id="tituloInformacion">Todas las miradas.<br>Un mismo lugar.</h2>
+      <p class="ventana__descripcion">Un álbum para construir entre todos, sin perderse lo que pasó del otro lado de la cámara.</p>
+      <ol class="pasos">
+        <li><span class="paso__numero">1</span><div><h3>Compartí tu mirada</h3><p>Tocá el botón +, elegí tus fotos y confirmá el envío.</p></div></li>
+        <li><span class="paso__numero">2</span><div><h3>Descubrí otros momentos</h3><p>El álbum se actualiza automáticamente. Algunas fotos pueden esperar la aprobación del organizador.</p></div></li>
+        <li><span class="paso__numero">3</span><div><h3>Guardá tus favoritas</h3><p>Abrí una foto para verla completa. Deslizá para recorrer el álbum y usá Descargar para guardarla.</p></div></li>
+      </ol>
+      <p class="nota-privacidad">Las fotos publicadas pueden ser vistas y descargadas por quienes tengan acceso al álbum. Si una imagen no debería estar acá, avisale al organizador.</p>
+      <button id="compartirDesdeInformacion" class="boton-principal ancho-completo" type="button">Quiero compartir una foto</button>
+    </div>
+  </dialog>
+
+  <!-- VISOR SIN MARCA, SIN NOMBRE DE ARCHIVO Y SIN ABRIR EN DRIVE. -->
+  <dialog id="visor" class="visor" aria-label="Visor de fotografías">
+    <header class="visor__cabecera"><button id="cerrarVisor" class="boton-cerrar" type="button" aria-label="Cerrar fotografía"><svg aria-hidden="true"><use href="#icono-cerrar"/></svg></button></header>
+    <div id="escenarioVisor" class="visor__escenario">
+      <img id="imagenVisor" class="visor__imagen" alt="Fotografía del álbum" hidden>
+      <div id="estadoImagen" class="visor__estado" role="status"><span id="indicadorImagen" class="indicador-carga" aria-hidden="true"></span><span id="mensajeImagen">Abriendo el recuerdo…</span></div>
+      <button id="fotoAnterior" class="boton-icono visor__flecha visor__anterior" type="button" aria-label="Foto anterior"><svg aria-hidden="true"><use href="#icono-izquierda"/></svg></button>
+      <button id="fotoSiguiente" class="boton-icono visor__flecha visor__siguiente" type="button" aria-label="Foto siguiente"><svg aria-hidden="true"><use href="#icono-derecha"/></svg></button>
+    </div>
+    <footer class="visor__pie"><span id="posicionVisor" class="visor__posicion"></span><a id="descargarFoto" class="boton-principal boton-descargar" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true"><use href="#icono-descargar"/></svg>¡La quiero!</a></footer>
+  </dialog>
+
+  <button id="abrirAdministracion" class="boton-administracion" type="button" hidden>
+    <svg aria-hidden="true">
+      <use href="#icono-informacion"></use>
+    </svg>
+    Administrar fotos
+  </button>
+
+  <dialog id="panelAdministracion" class="ventana panel-administracion" aria-labelledby="tituloAdministracion">
+    <div class="ventana__cabecera">
+      <p class="ventana__etiqueta">Panel del organizador</p>
+      <button id="cerrarAdministracion" class="boton-cerrar" type="button" aria-label="Cerrar panel">
+        <svg aria-hidden="true">
+          <use href="#icono-cerrar"></use>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ventana__contenido">
+      <h2 id="tituloAdministracion">Fotos pendientes</h2>
+      <p class="ventana__descripcion">
+        Revisá las fotos que la IA envió a revisión o que todavía no fueron aprobadas.
+      </p>
+
+      <div class="admin-acciones">
+        <p id="estadoAdministracion" class="admin-estado">Cargando fotos pendientes…</p>
+
+        <button id="actualizarAdministracion" class="boton-secundario" type="button">
+          <svg aria-hidden="true">
+            <use href="#icono-actualizar"></use>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+
+      <div id="contenidoAdministracion" class="admin-grida"></div>
+    </div>
+  </dialog>
+
+  <div id="mensajeFlotante" class="mensaje-flotante" role="status" aria-live="polite" hidden></div>
+
+  <script>
+
+  (() => {
+    'use strict';
+
+    // 01. CONFIGURACIÓN DEL EVENTO Y LÍMITES DE CARGA.
+    const CONFIGURACION = {
+      urlApi: 'https://script.google.com/macros/s/AKfycbwSSM_rqGZwAXN2xffPKCXgZh9qCwG4z_xU1rwvU0mEAS9LbeWTcVzv-JUuH5aym23Cpw/exec',
+      intervaloActualizacion: 30000,
+      tiempoLimiteConsulta: 20000,
+      fotosPorPagina: 40,
+      maximoArchivos: 10,
+      maximoMegabytes: 15,
+      calidadJpeg: 0.95
+    };
+    const LIMITE_BYTES = CONFIGURACION.maximoMegabytes * 1024 * 1024;
+    const obtenerElemento = identificador => document.getElementById(identificador);
+
+    // 02. ELEMENTOS Y ESTADO DE LA APLICACIÓN.
+    const elementos = {};
+    [
+      'galeria', 'esqueletos', 'avisoAlbum', 'albumVacio', 'actualizarAlbum',
+      'vistaGrande', 'vistaCompacta', 'verMas', 'ventanaCarga', 'ventanaInformacion',
+      'cerrarCarga', 'elegirArchivos', 'archivosSeleccionados', 'seleccion',
+      'progresoCarga', 'estadoCarga', 'enviarFotos', 'textoEnviar', 'visor',
+      'escenarioVisor', 'imagenVisor', 'estadoImagen', 'indicadorImagen',
+      'mensajeImagen', 'fotoAnterior', 'fotoSiguiente', 'posicionVisor',
+      'descargarFoto', 'mensajeFlotante'
+    ].forEach(identificador => { elementos[identificador] = obtenerElemento(identificador); });
+    let fotos = [];
+    let fotosDelVisor = [];
+    let indiceFotoActual = 0;
+    let cantidadVisible = CONFIGURACION.fotosPorPagina;
+    let consultaEnCurso = false;
+    let primeraCargaCompletada = false;
+    let numeroConsulta = 0;
+    let versionImagen = 0;
+    let temporizadorMensaje;
+    let archivosPendientes = [];
+    let urlsTemporales = [];
+    let cargaEnCurso = false;
+    let inicioGesto = null;
+    const tarjetasPorId = new Map();
+    const origenDeVentanas = new Map();
+    const panelAdministracion = document.getElementById('panelAdministracion');
+    const ventanas = [
+      elementos.visor,
+      elementos.ventanaCarga,
+      elementos.ventanaInformacion,
+      panelAdministracion
+    ];
+
+    // 03. MENSAJES Y VENTANAS.
+    function mostrarMensaje(texto) {
+      elementos.mensajeFlotante.textContent = texto;
+      elementos.mensajeFlotante.hidden = false;
+      clearTimeout(temporizadorMensaje);
+      temporizadorMensaje = setTimeout(() => { elementos.mensajeFlotante.hidden = true; }, 3500);
+    }
+    function abrirVentana(ventana, origen = document.activeElement) {
+      if (ventana.open) return;
+      origenDeVentanas.set(ventana, origen);
+      ventana.showModal();
+      document.body.classList.add('sin-desplazamiento');
+    }
+    ventanas.forEach(ventana => {
+      ventana.addEventListener('close', () => {
+        if (!ventanas.some(otraVentana => otraVentana.open)) {
+          document.body.classList.remove('sin-desplazamiento');
+          const origen = origenDeVentanas.get(ventana);
+          if (origen?.isConnected) origen.focus({ preventScroll: true });
+        }
+      });
+      ventana.addEventListener('click', evento => {
+        if (evento.target !== ventana || (ventana === elementos.ventanaCarga && cargaEnCurso)) return;
+        const limites = ventana.getBoundingClientRect();
+        if (evento.clientX < limites.left || evento.clientX > limites.right || evento.clientY < limites.top || evento.clientY > limites.bottom) ventana.close();
+      });
+    });
+    document.querySelectorAll('[data-abrir-carga]').forEach(boton => {
+      boton.onclick = () => abrirVentana(elementos.ventanaCarga);
+    });
+    obtenerElemento('abrirInformacion').onclick = () => abrirVentana(elementos.ventanaInformacion);
+    obtenerElemento('cerrarInformacion').onclick = () => elementos.ventanaInformacion.close();
+    obtenerElemento('cerrarVisor').onclick = () => elementos.visor.close();
+    elementos.cerrarCarga.onclick = () => { if (!cargaEnCurso) elementos.ventanaCarga.close(); };
+    obtenerElemento('compartirDesdeInformacion').onclick = () => {
+      const origen = origenDeVentanas.get(elementos.ventanaInformacion);
+      elementos.ventanaInformacion.close();
+      abrirVentana(elementos.ventanaCarga, origen);
+    };
+    elementos.ventanaCarga.addEventListener('cancel', evento => { if (cargaEnCurso) evento.preventDefault(); });
+
+    // 04. NORMALIZACIÓN DE LA RESPUESTA DEL BACKEND.
+    function usarUrlSegura(valor, alternativa) {
+      try {
+        const direccion = new URL(valor);
+        return direccion.protocol === 'https:' ? direccion.href : alternativa;
+      } catch { return alternativa; }
+    }
+    function normalizarFoto(datosFoto) {
+      if (!datosFoto || typeof datosFoto !== 'object') return null;
+      const direccionOriginal = String(datosFoto.url || '');
+      const identificador = String(datosFoto.id || direccionOriginal.match(/\/d\/([A-Za-z0-9_-]+)/)?.[1] || direccionOriginal.match(/[?&]id=([A-Za-z0-9_-]+)/)?.[1] || '');
+      if (!/^[A-Za-z0-9_-]+$/.test(identificador)) return null;
+      return {
+        identificador,
+        miniatura: usarUrlSegura(datosFoto.miniatura, 'https://lh3.googleusercontent.com/d/' + identificador + '=w600'),
+        imagen: usarUrlSegura(datosFoto.url, 'https://lh3.googleusercontent.com/d/' + identificador + '=w1600'),
+        descarga: usarUrlSegura(datosFoto.descarga, 'https://drive.google.com/uc?export=download&id=' + identificador)
+      };
+    }
+
+    // 05. CONSULTA JSONP: NO CAMBIA EL FORMATO DEL SERVIDOR.
+    function consultarFotos() {
+      return new Promise((resolver, rechazar) => {
+        const nombreRespuesta = 'respuestaMomentos' + (++numeroConsulta);
+        const etiquetaScript = document.createElement('script');
+        let consultaTerminada = false;
+        const temporizador = setTimeout(() => finalizar(new Error('La conexión está tardando más de lo esperado.')), CONFIGURACION.tiempoLimiteConsulta);
+        function finalizar(error, resultado) {
+          if (consultaTerminada) return;
+          consultaTerminada = true;
+          clearTimeout(temporizador);
+          etiquetaScript.remove();
+          window[nombreRespuesta] = () => {};
+          setTimeout(() => delete window[nombreRespuesta], 60000);
+          if (error) rechazar(error); else resolver(resultado);
+        }
+        window[nombreRespuesta] = respuesta => {
+          try {
+            if (!Array.isArray(respuesta?.fotos)) throw new Error('No pudimos cargar el álbum.');
+            const fotosNormalizadas = respuesta.fotos.map(normalizarFoto).filter(Boolean);
+            finalizar(null, [...new Map(fotosNormalizadas.map(foto => [foto.identificador, foto])).values()]);
+          } catch (error) { finalizar(error); }
+        };
+        etiquetaScript.onerror = () => finalizar(new Error('No pudimos conectar con el álbum.'));
+        try {
+          const direccion = new URL(CONFIGURACION.urlApi);
+          direccion.searchParams.set('accion', 'listar');
+          direccion.searchParams.set('callback', nombreRespuesta);
+          direccion.searchParams.set('_', Date.now());
+          etiquetaScript.src = direccion.href;
+          document.body.append(etiquetaScript);
+        } catch (error) { finalizar(error); }
+      });
+    }
+
+    // 06. GALERÍA: REUTILIZA LAS TARJETAS Y EVITA PARPADEOS.
+    function crearTarjeta(foto) {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'foto';
+      boton.dataset.identificador = foto.identificador;
+      const imagen = document.createElement('img');
+      imagen.loading = 'lazy';
+      imagen.decoding = 'async';
+      imagen.alt = 'Fotografía del álbum';
+      imagen.onload = () => { boton.classList.add('cargada'); boton.classList.remove('con-error'); };
+      imagen.onerror = () => boton.classList.add('con-error');
+      imagen.src = foto.miniatura;
+      boton.append(imagen);
+      boton.onclick = () => {
+        fotosDelVisor = [...fotos];
+        indiceFotoActual = fotosDelVisor.findIndex(otraFoto => otraFoto.identificador === boton.dataset.identificador);
+        if (indiceFotoActual < 0) return;
+        abrirVentana(elementos.visor);
+        mostrarFotoActual();
+      };
+      return boton;
+    }
+    function dibujarGaleria() {
+      const fotosVisibles = fotos.slice(0, cantidadVisible);
+      const identificadoresVisibles = new Set(fotosVisibles.map(foto => foto.identificador));
+      for (const [identificador, tarjeta] of tarjetasPorId) {
+        if (!identificadoresVisibles.has(identificador)) { tarjeta.remove(); tarjetasPorId.delete(identificador); }
+      }
+      fotosVisibles.forEach((foto, posicion) => {
+        let tarjeta = tarjetasPorId.get(foto.identificador);
+        if (!tarjeta) { tarjeta = crearTarjeta(foto); tarjetasPorId.set(foto.identificador, tarjeta); }
+        const imagen = tarjeta.firstElementChild;
+        if (imagen.getAttribute('src') !== foto.miniatura) { tarjeta.classList.remove('cargada', 'con-error'); imagen.src = foto.miniatura; }
+        tarjeta.setAttribute('aria-label', 'Abrir fotografía ' + (posicion + 1));
+        const tarjetaEnPosicion = elementos.galeria.children[posicion];
+        if (tarjetaEnPosicion !== tarjeta) elementos.galeria.insertBefore(tarjeta, tarjetaEnPosicion || null);
+      });
+      elementos.verMas.hidden = fotos.length <= cantidadVisible;
+      elementos.albumVacio.hidden = fotos.length > 0;
+    }
+    async function actualizarGaleria(mostrarConfirmacion = false) {
+      if (consultaEnCurso) return;
+      consultaEnCurso = true;
+      elementos.actualizarAlbum.classList.add('actualizando');
+      elementos.actualizarAlbum.disabled = true;
+      try {
+        fotos = await consultarFotos();
+        dibujarGaleria();
+        primeraCargaCompletada = true;
+        elementos.avisoAlbum.hidden = true;
+        const fotoAbierta = fotosDelVisor[indiceFotoActual];
+        if (elementos.visor.open && !fotos.some(foto => foto.identificador === fotoAbierta?.identificador)) {
+          elementos.visor.close(); mostrarMensaje('Esta foto ya no está disponible en el álbum.');
+        }
+        if (mostrarConfirmacion) mostrarMensaje('Álbum actualizado.');
+      } catch (error) {
+        elementos.avisoAlbum.className = 'aviso error';
+        elementos.avisoAlbum.textContent = primeraCargaCompletada ? 'No pudimos actualizar. Tus fotos cargadas siguen disponibles.' : (error.message || 'No pudimos abrir el álbum. Tocá Actualizar para reintentar.');
+        elementos.avisoAlbum.hidden = false;
+      } finally {
+        consultaEnCurso = false;
+        elementos.actualizarAlbum.disabled = false;
+        elementos.actualizarAlbum.classList.remove('actualizando');
+        elementos.esqueletos.hidden = true;
+        elementos.galeria.setAttribute('aria-busy', 'false');
+      }
+    }
+    function cambiarVista(esCompacta) {
+      elementos.galeria.classList.toggle('compacta', esCompacta);
+      elementos.vistaGrande.setAttribute('aria-pressed', String(!esCompacta));
+      elementos.vistaCompacta.setAttribute('aria-pressed', String(esCompacta));
+      try { localStorage.setItem('momentos-vista', esCompacta ? 'compacta' : 'grande'); } catch {}
+    }
+    elementos.actualizarAlbum.onclick = () => actualizarGaleria(true);
+    elementos.verMas.onclick = () => { cantidadVisible += CONFIGURACION.fotosPorPagina; dibujarGaleria(); };
+    elementos.vistaGrande.onclick = () => cambiarVista(false);
+    elementos.vistaCompacta.onclick = () => cambiarVista(true);
+    try { cambiarVista(localStorage.getItem('momentos-vista') === 'compacta'); } catch {}
+
+    // 07. VISOR Y NAVEGACIÓN.
+    function mostrarFotoActual() {
+      const foto = fotosDelVisor[indiceFotoActual];
+      if (!foto) return;
+      const versionSolicitada = ++versionImagen;
+      elementos.posicionVisor.textContent = String(indiceFotoActual + 1).padStart(2, '0') + ' / ' + String(fotosDelVisor.length).padStart(2, '0');
+      elementos.descargarFoto.href = foto.descarga;
+      elementos.imagenVisor.hidden = true;
+      elementos.estadoImagen.hidden = false;
+      elementos.indicadorImagen.hidden = false;
+      elementos.mensajeImagen.textContent = 'Abriendo el recuerdo…';
+      elementos.fotoAnterior.hidden = fotosDelVisor.length < 2;
+      elementos.fotoSiguiente.hidden = fotosDelVisor.length < 2;
+      const precarga = new Image();
+      precarga.onload = () => {
+        if (versionSolicitada !== versionImagen || !elementos.visor.open) return;
+        elementos.imagenVisor.src = foto.imagen;
+        elementos.imagenVisor.alt = 'Fotografía ' + (indiceFotoActual + 1) + ' del álbum';
+        elementos.imagenVisor.hidden = false;
+        elementos.estadoImagen.hidden = true;
+      };
+      precarga.onerror = () => {
+        if (versionSolicitada !== versionImagen || !elementos.visor.open) return;
+        elementos.indicadorImagen.hidden = true;
+        elementos.mensajeImagen.textContent = 'No pudimos cargar esta imagen. Podés intentar descargarla o pasar a la siguiente.';
+      };
+      precarga.src = foto.imagen;
+    }
+    function cambiarFoto(direccion) {
+      if (!fotosDelVisor.length) return;
+      indiceFotoActual = (indiceFotoActual + direccion + fotosDelVisor.length) % fotosDelVisor.length;
+      mostrarFotoActual();
+    }
+    elementos.fotoAnterior.onclick = () => cambiarFoto(-1);
+    elementos.fotoSiguiente.onclick = () => cambiarFoto(1);
+    elementos.visor.addEventListener('close', () => { versionImagen++; elementos.imagenVisor.hidden = true; elementos.imagenVisor.removeAttribute('src'); });
+    elementos.visor.addEventListener('keydown', evento => {
+      if (evento.key === 'ArrowRight') { evento.preventDefault(); cambiarFoto(1); }
+      if (evento.key === 'ArrowLeft') { evento.preventDefault(); cambiarFoto(-1); }
+    });
+
+    // 08. GESTO LATERAL EN TELÉFONOS.
+    elementos.escenarioVisor.addEventListener('touchstart', evento => {
+      inicioGesto = evento.touches.length === 1 ? { horizontal: evento.touches[0].clientX, vertical: evento.touches[0].clientY, momento: Date.now() } : null;
+    }, { passive: true });
+    elementos.escenarioVisor.addEventListener('touchmove', evento => { if (evento.touches.length !== 1) inicioGesto = null; }, { passive: true });
+    elementos.escenarioVisor.addEventListener('touchend', evento => {
+      if (!inicioGesto || !evento.changedTouches.length) return;
+      const distanciaHorizontal = evento.changedTouches[0].clientX - inicioGesto.horizontal;
+      const distanciaVertical = evento.changedTouches[0].clientY - inicioGesto.vertical;
+      if (Date.now() - inicioGesto.momento < 750 && Math.abs(distanciaHorizontal) > 65 && Math.abs(distanciaHorizontal) > Math.abs(distanciaVertical) * 1.5) cambiarFoto(distanciaHorizontal < 0 ? 1 : -1);
+      inicioGesto = null;
+    }, { passive: true });
+    elementos.escenarioVisor.addEventListener('touchcancel', () => { inicioGesto = null; }, { passive: true });
+
+    // 09. SELECCIÓN Y VALIDACIÓN DE ARCHIVOS.
+    function mostrarEstadoCarga(texto, tipo = '') {
+      elementos.estadoCarga.textContent = texto;
+      elementos.estadoCarga.className = 'estado-carga ' + tipo;
+    }
+    function actualizarControlesCarga() {
+      elementos.elegirArchivos.disabled = cargaEnCurso;
+      elementos.archivosSeleccionados.disabled = cargaEnCurso;
+      elementos.cerrarCarga.disabled = cargaEnCurso;
+      elementos.enviarFotos.disabled = cargaEnCurso || !archivosPendientes.length;
+      elementos.seleccion.querySelectorAll('button').forEach(boton => { boton.disabled = cargaEnCurso; });
+      elementos.textoEnviar.textContent = cargaEnCurso ? 'Compartiendo…' : archivosPendientes.length ? 'Compartir ' + archivosPendientes.length + (archivosPendientes.length === 1 ? ' foto' : ' fotos') : 'Compartir fotos';
+    }
+    function dibujarSeleccion() {
+      urlsTemporales.forEach(direccion => URL.revokeObjectURL(direccion));
+      urlsTemporales = [];
+      elementos.seleccion.replaceChildren();
+      archivosPendientes.forEach((archivo, posicion) => {
+        const tarjeta = document.createElement('div'); tarjeta.className = 'seleccion__foto';
+        const imagen = document.createElement('img');
+        const direccion = URL.createObjectURL(archivo); urlsTemporales.push(direccion);
+        imagen.src = direccion; imagen.alt = 'Foto seleccionada ' + (posicion + 1);
+        const botonQuitar = document.createElement('button');
+        botonQuitar.type = 'button'; botonQuitar.className = 'seleccion__quitar';
+        botonQuitar.setAttribute('aria-label', 'Quitar foto ' + (posicion + 1));
+        botonQuitar.innerHTML = '<svg aria-hidden="true"><use href="#icono-cerrar"/></svg>';
+        botonQuitar.onclick = () => {
+          if (cargaEnCurso) return;
+          archivosPendientes.splice(posicion, 1); dibujarSeleccion();
+          mostrarEstadoCarga(archivosPendientes.length ? 'Tu selección está lista.' : 'Elegí los momentos que querés compartir.');
+        };
+        tarjeta.append(imagen, botonQuitar); elementos.seleccion.append(tarjeta);
+      });
+      actualizarControlesCarga();
+    }
+    function agregarArchivos(archivos) {
+      if (cargaEnCurso) return;
+      const advertencias = new Set();
+      for (const archivo of archivos) {
+        if (!archivo.type.startsWith('image/')) { advertencias.add('Algunos archivos no son imágenes reconocidas.'); continue; }
+        if (archivo.size > LIMITE_BYTES) { advertencias.add('Algunas imágenes superan los ' + CONFIGURACION.maximoMegabytes + ' MB.'); continue; }
+        if (archivosPendientes.some(otro => otro.name === archivo.name && otro.size === archivo.size && otro.lastModified === archivo.lastModified)) { advertencias.add('No agregamos las fotos repetidas.'); continue; }
+        if (archivosPendientes.length >= CONFIGURACION.maximoArchivos) { advertencias.add('Podés enviar hasta ' + CONFIGURACION.maximoArchivos + ' imágenes por vez.'); continue; }
+        archivosPendientes.push(archivo);
+      }
+      dibujarSeleccion(); elementos.progresoCarga.hidden = true;
+      mostrarEstadoCarga(advertencias.size ? [...advertencias].join(' ') : 'Todo listo. Revisá tu selección y compartila.', advertencias.size ? 'error' : '');
+    }
+    elementos.elegirArchivos.onclick = () => elementos.archivosSeleccionados.click();
+    elementos.archivosSeleccionados.onchange = () => { agregarArchivos(Array.from(elementos.archivosSeleccionados.files || [])); elementos.archivosSeleccionados.value = ''; };
+    ['dragenter', 'dragover'].forEach(nombreEvento => {
+      elementos.elegirArchivos.addEventListener(nombreEvento, evento => { evento.preventDefault(); if (!cargaEnCurso) elementos.elegirArchivos.classList.add('arrastrando'); });
+    });
+    ['dragleave', 'drop'].forEach(nombreEvento => {
+      elementos.elegirArchivos.addEventListener(nombreEvento, evento => {
+        evento.preventDefault(); elementos.elegirArchivos.classList.remove('arrastrando');
+        if (nombreEvento === 'drop' && !cargaEnCurso) agregarArchivos(Array.from(evento.dataTransfer?.files || []));
+      });
+    });
+
+    // 10. PREPARACIÓN: NORMALIZA LA ORIENTACIÓN JPEG COMO LA VERSIÓN ANTERIOR.
+    function convertirABase64(archivo) {
+      return new Promise((resolver, rechazar) => {
+        const lector = new FileReader();
+        lector.onload = () => resolver(String(lector.result).split(',')[1]);
+        lector.onerror = () => rechazar(new Error('No pudimos leer una de las imágenes.'));
+        lector.readAsDataURL(archivo);
+      });
+    }
+    async function prepararArchivo(archivo) {
+      const esJpeg = /^image\/jpe?g$/i.test(archivo.type) || /\.jpe?g$/i.test(archivo.name);
+      if (!esJpeg || !window.createImageBitmap) return { name: archivo.name, type: archivo.type, data: await convertirABase64(archivo) };
+      let mapaImagen, lienzo;
+      try {
+        mapaImagen = await createImageBitmap(archivo, { imageOrientation: 'from-image' });
+        lienzo = document.createElement('canvas'); lienzo.width = mapaImagen.width; lienzo.height = mapaImagen.height;
+        const contexto = lienzo.getContext('2d');
+        if (!contexto) throw new Error('No pudimos preparar la foto en este dispositivo.');
+        contexto.drawImage(mapaImagen, 0, 0);
+        const imagenPreparada = await new Promise((resolver, rechazar) => {
+          lienzo.toBlob(resultado => resultado ? resolver(resultado) : rechazar(new Error('No pudimos preparar la imagen.')), 'image/jpeg', CONFIGURACION.calidadJpeg);
+        });
+        if (imagenPreparada.size > LIMITE_BYTES) throw new Error('Una imagen supera el tamaño permitido después de prepararla.');
+        return { name: archivo.name.replace(/\.jpe?g$/i, '') + '.jpg', type: 'image/jpeg', data: await convertirABase64(imagenPreparada) };
+      } finally {
+        mapaImagen?.close(); if (lienzo) { lienzo.width = 0; lienzo.height = 0; }
+      }
+    }
+
+    // 11. ENVÍO: LOS NOMBRES EXTERNOS DE LA API SE CONSERVAN SIN TRADUCIR.
+    async function enviarArchivoAlServidor(archivo) {
+      const respuesta = await fetch(CONFIGURACION.urlApi, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          accion: 'subir',
+          files: [archivo]
+        })
+      });   
+
+      const datos = await respuesta.json();   
+
+      if (!datos.ok) {
+        throw new Error(datos.message || 'No se pudo confirmar el envío.');
+      }   
+
+      return datos;
+    }
+
+    async function compartirFotos() {
+      if (cargaEnCurso || !archivosPendientes.length) return;
+      cargaEnCurso = true; actualizarControlesCarga();
+      const totalArchivos = archivosPendientes.length;
+      let archivosConfirmados = 0;
+      elementos.progresoCarga.max = totalArchivos; elementos.progresoCarga.value = 0; elementos.progresoCarga.hidden = false;
+      try {
+        while (archivosPendientes.length) {
+          mostrarEstadoCarga('Preparando foto ' + (archivosConfirmados + 1) + ' de ' + totalArchivos + '…');
+          const archivoPreparado = await prepararArchivo(archivosPendientes[0]);
+          mostrarEstadoCarga('Enviando foto ' + (archivosConfirmados + 1) + ' de ' + totalArchivos + '… No cierres esta ventana.');
+          await enviarArchivoAlServidor(archivoPreparado);
+          archivosPendientes.shift(); archivosConfirmados++;
+          elementos.progresoCarga.value = archivosConfirmados; dibujarSeleccion();
+        }
+        mostrarEstadoCarga(archivosConfirmados === 1 ? 'Tu foto ya fue enviada. Gracias por sumar tu mirada. Aparecerá cuando esté disponible.' : 'Tus fotos ya fueron enviadas. Gracias por sumar tu mirada. Aparecerán cuando estén disponibles.', 'exito');
+        actualizarGaleria();
+      } catch (error) {
+        mostrarEstadoCarga((archivosConfirmados ? 'Se confirmaron ' + archivosConfirmados + ' envíos. ' : '') + (error.message || 'No pudimos completar el envío.') + ' Las fotos sin confirmar siguen seleccionadas. Si hubo un corte de conexión, verificá el álbum o consultá al organizador antes de reenviar.', 'error');
+      } finally { cargaEnCurso = false; actualizarControlesCarga(); }
+    }
+    elementos.enviarFotos.onclick = compartirFotos;
+
+    function iniciarBotonPortada() {
+      const botonPortada = obtenerElemento('compartirFotosPortada');
+      const botonBarra = obtenerElemento('agregarFotosSuperior');
+      const barra = document.querySelector('.barra-superior');
+
+      if (!botonPortada || !botonBarra || !barra) return;
+
+      let actualizacionPendiente = false;
+
+      function actualizarBotonBarra() {
+        actualizacionPendiente = false;
+      
+        const limiteBarra = barra.getBoundingClientRect().bottom;
+        const bordeBotonPortada =
+          botonPortada.getBoundingClientRect().bottom;
+      
+        /*
+          Cuando el botón de la portada queda debajo de la barra,
+          aparece el ícono + de la barra.
+        */
+        const visible = bordeBotonPortada <= limiteBarra + 1;
+      
+        botonBarra.classList.toggle('visible', visible);
+        botonBarra.disabled = !visible;
+        botonBarra.setAttribute('aria-hidden', String(!visible));
+      }
+    
+      function programarActualizacion() {
+        if (actualizacionPendiente) return;
+      
+        actualizacionPendiente = true;
+      
+        requestAnimationFrame(actualizarBotonBarra);
+      }
+    
+      window.addEventListener(
+        'scroll',
+        programarActualizacion,
+        { passive: true }
+      );
+    
+      window.addEventListener(
+        'resize',
+        programarActualizacion,
+        { passive: true }
+      );
+    
+      const galeria = obtenerElemento('galeria');
+    
+      if (galeria && typeof ResizeObserver === 'function') {
+        new ResizeObserver(programarActualizacion).observe(galeria);
+      }
+    
+      actualizarBotonBarra();
+    }
+    
+    // 12. INICIO Y ACTUALIZACIONES AUTOMÁTICAS.
+    setInterval(() => { if (!document.hidden) actualizarGaleria(); }, CONFIGURACION.intervaloActualizacion);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) actualizarGaleria(); });
+    window.addEventListener('online', () => actualizarGaleria());
+    window.addEventListener('offline', () => mostrarMensaje('Sin conexión. Las fotos ya cargadas siguen disponibles.'));
+    window.addEventListener('beforeunload', evento => { if (cargaEnCurso) { evento.preventDefault(); evento.returnValue = ''; } });
+    obtenerElemento('limitesCarga').textContent = 'Hasta ' + CONFIGURACION.maximoArchivos + ' imágenes · ' + CONFIGURACION.maximoMegabytes + ' MB por imagen';
+    
+   /* 12. PANEL DE ADMINISTRACIÓN */
+
+    const abrirAdministracion = document.getElementById('abrirAdministracion');
+    const cerrarAdministracion = document.getElementById('cerrarAdministracion');
+    const actualizarAdministracion = document.getElementById('actualizarAdministracion');
+    const contenidoAdministracion = document.getElementById('contenidoAdministracion');
+    const estadoAdministracion = document.getElementById('estadoAdministracion');
+
+    let tokenAdministrador = sessionStorage.getItem('token-administrador') || '';
+
+    function consultarJsonp(parametros) {
+      return new Promise((resolver, rechazar) => {
+        const nombreRespuesta = 'respuestaAdmin_' + Date.now();
+      
+        const etiqueta = document.createElement('script');
+        let finalizado = false;
+      
+        const finalizar = (error, datos) => {
+          if (finalizado) return;
+          finalizado = true;
+        
+          etiqueta.remove();
+          delete window[nombreRespuesta];
+        
+          if (error) rechazar(error);
+          else resolver(datos);
+        };
+      
+        window[nombreRespuesta] = datos => {
+          try {
+            if (!datos || typeof datos !== 'object') {
+              throw new Error('Respuesta inválida del servidor.');
+            }
+          
+            finalizar(null, datos);
+          } catch (error) {
+            finalizar(error);
+          }
+        };
+      
+        etiqueta.onerror = () => {
+          finalizar(new Error('No pudimos conectar con el álbum.'));
+        };
+      
+        const direccion = new URL(CONFIGURACION.urlApi);
+      
+        Object.entries(parametros).forEach(([clave, valor]) => {
+          if (valor !== undefined && valor !== null) {
+            direccion.searchParams.set(clave, valor);
+          }
+        });
+      
+        direccion.searchParams.set('callback', nombreRespuesta);
+        direccion.searchParams.set('_', Date.now());
+      
+        etiqueta.src = direccion.href;
+        document.body.append(etiqueta);
+      });
+    }
+
+    async function iniciarSesionAdministrador() {
+      const clave = new URLSearchParams(window.location.search).get('admin');
+    
+      if (!clave) return;
+    
+      try {
+        const respuesta = await consultarJsonp({
+          accion: 'iniciarAdmin',
+          admin: clave
+        });
+      
+        if (!respuesta.ok) return;
+      
+        tokenAdministrador = respuesta.token;
+        sessionStorage.setItem('token-administrador', tokenAdministrador);
+      
+        abrirAdministracion.hidden = false;
+      } catch (error) {
+        /* Si la clave no es válida, el botón permanece oculto. */
+      }
+    }
+
+    if (
+      panelAdministracion &&
+      abrirAdministracion &&
+      cerrarAdministracion &&
+      actualizarAdministracion &&
+      contenidoAdministracion &&
+      estadoAdministracion
+    ) {
+      abrirAdministracion.addEventListener('click', () => {
+        abrirVentana(panelAdministracion, abrirAdministracion);
+        cargarFotosPendientes();
+      });
+    
+      cerrarAdministracion.addEventListener('click', () => {
+        panelAdministracion.close();
+      });
+    
+      actualizarAdministracion.addEventListener('click', cargarFotosPendientes);
+    
+      panelAdministracion.addEventListener('click', evento => {
+        if (evento.target !== panelAdministracion) return;
+        panelAdministracion.close();
+      });
+    }
+
+    async function cargarFotosPendientes() {
+      const contenedor = contenidoAdministracion;
+
+      if (!contenedor) return;
+
+      estadoAdministracion.textContent = 'Cargando fotos pendientes...';
+      contenedor.replaceChildren();
+
+      try {
+        const respuesta = await consultarJsonp({
+          accion: 'listarPendientes',
+          token: tokenAdministrador
+        });
+      
+        if (!respuesta.ok) {
+          estadoAdministracion.textContent =
+            respuesta.message || 'No se pudieron cargar las fotos.';
+          return;
+        }
+      
+        dibujarFotosPendientes(respuesta.fotos || []);
+      } catch (error) {
+        estadoAdministracion.textContent =
+          error.message || 'No se pudieron cargar las fotos.';
+      }
+    }
+
+    function dibujarFotosPendientes(fotos) {
+      contenidoAdministracion.replaceChildren();
+    
+      if (!Array.isArray(fotos) || fotos.length === 0) {
+        estadoAdministracion.textContent =
+          'No hay fotos pendientes de revisión.';
+      
+        const vacio = document.createElement('div');
+        vacio.className = 'admin-vacio';
+        vacio.textContent = 'Todas las fotos fueron revisadas.';
+      
+        contenidoAdministracion.append(vacio);
+        return;
+      }
+    
+      estadoAdministracion.textContent =
+        fotos.length === 1
+          ? 'Hay 1 foto esperando revisión.'
+          : 'Hay ' + fotos.length + ' fotos esperando revisión.';
+    
+      fotos.forEach(foto => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'admin-foto';
+      
+        const imagen = document.createElement('img');
+        imagen.alt = 'Foto pendiente de revisión';
+        imagen.loading = 'lazy';
+      
+        /* Usa la miniatura liviana de Drive.
+           Ya no descarga la foto completa en base64. */
+        imagen.src = foto.thumbnail;
+      
+        const info = document.createElement('div');
+        info.className = 'admin-foto-info';
+      
+        const nombre = document.createElement('p');
+        nombre.className = 'admin-foto-nombre';
+        nombre.textContent = foto.name || 'Foto pendiente';
+      
+        const botones = document.createElement('div');
+        botones.className = 'admin-foto-botones';
+      
+        const aceptar = document.createElement('button');
+        aceptar.type = 'button';
+        aceptar.className = 'aprobar';
+        aceptar.textContent = 'Aceptar';
+        aceptar.addEventListener('click', () => decidirFoto(foto.id, 'aceptar'));
+      
+        const rechazar = document.createElement('button');
+        rechazar.type = 'button';
+        rechazar.className = 'bloquear';
+        rechazar.textContent = 'Rechazar';
+        rechazar.addEventListener('click', () => decidirFoto(foto.id, 'rechazar'));
+      
+        botones.append(aceptar, rechazar);
+        info.append(nombre, botones);
+        tarjeta.append(imagen, info);
+      
+        contenidoAdministracion.append(tarjeta);
+      });
+    }
+
+    async function decidirFoto(id, accion) {
+      try {
+        const respuesta = await consultarJsonp({
+          accion: accion,
+          token: tokenAdministrador,
+          id: id
+        });
+      
+        if (!respuesta.ok) {
+          throw new Error(respuesta.message || 'No se pudo completar la acción.');
+        }
+      
+        mostrarMensaje(respuesta.message);
+      } catch (error) {
+        mostrarMensaje(error.message);
+      }
+    
+      cargarFotosPendientes();
+    }
+    
+    iniciarSesionAdministrador();
+    
+    iniciarBotonPortada();
+    actualizarControlesCarga();
+    actualizarGaleria();
+  })();
+  </script>
+</body>
+</html>
