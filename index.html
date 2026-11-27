@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title>
+
+<style>
+  /* =========================================================
+     BASE
+     ========================================================= */
+
+  :root {
+    --fondo: #11100e;
+    --crema: #f5e4cb;
+    --radio-tarjeta: 18px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--fondo);
+    color: var(--crema);
+    font-family: Arial, sans-serif;
+  }
+
+  #pagina {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+
+  /* =========================================================
+     ESCENARIO A PANTALLA COMPLETA
+     ========================================================= */
+
+  #escenario {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    overflow: hidden;
+    isolation: isolate;
+
+    perspective: 1400px;
+    perspective-origin: 50% 48%;
+
+    background: radial-gradient(
+      ellipse at 50% 40%,
+      #51353f 0%,
+      #191013 58%,
+      #020202 100%
+    );
+  }
+
+  #estado {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    display: grid;
+    place-items: center;
+
+    padding: 24px;
+    color: #d9ccbb;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  #mundo {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+
+  /* =========================================================
+     TARJETAS: VUELO Y CAMBIO DE FOCO
+     El tamaño y la posición se calculan en JavaScript.
+     ========================================================= */
+
+  .voladora {
+    position: absolute;
+    left: 50%;
+    top: 47%;
+
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+
+    border-radius: var(--radio-tarjeta);
+    overflow: visible;
+    background: transparent;
+
+    transform:
+      translate(-50%, -50%)
+      perspective(1400px)
+      translate3d(0, 0, -650px);
+
+    filter: blur(10px) brightness(.65);
+
+    transition:
+      transform 4200ms cubic-bezier(.22, .65, .25, 1),
+      filter 4200ms ease;
+
+    will-change: transform, filter;
+  }
+
+
+  /* =========================================================
+     SUPERFICIE: BALANCEO 3D INDEPENDIENTE DEL VUELO
+     ========================================================= */
+
+  .tarjeta-superficie {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: inherit;
+    overflow: hidden;
+    background: #211e19;
+
+    transform-origin: 50% 50%;
+
+    box-shadow:
+      0 22px 55px rgba(0, 0, 0, .40),
+      0 3px 8px rgba(0, 0, 0, .22);
+
+    animation:
+      balanceo3d var(--tiempo-flotacion, 15s)
+      ease-in-out infinite;
+
+    animation-delay: var(--desfase-flotacion, 0s);
+
+    will-change: transform;
+  }
+
+  .tarjeta-superficie img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    border-radius: inherit;
+
+    filter: sepia(.08) saturate(.94);
+  }
+
+  /* Reflejo sutil sobre la superficie de cada foto. */
+  .tarjeta-superficie::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    border-radius: inherit;
+    pointer-events: none;
+
+    background: linear-gradient(
+      115deg,
+      rgba(255, 244, 220, .14) 0%,
+      rgba(255, 244, 220, .025) 35%,
+      transparent 55%,
+      rgba(255, 244, 220, .045) 100%
+    );
+
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 245, 224, .16);
+  }
+
+  @keyframes balanceo3d {
+    0%,
+    100% {
+      transform:
+        perspective(1300px)
+        translate3d(-3px, 5px, 0)
+        rotateX(3deg)
+        rotateY(-5deg)
+        rotateZ(-.6deg);
+    }
+
+    33% {
+      transform:
+        perspective(1300px)
+        translate3d(5px, -7px, 18px)
+        rotateX(-3deg)
+        rotateY(4deg)
+        rotateZ(.7deg);
+    }
+
+    66% {
+      transform:
+        perspective(1300px)
+        translate3d(-4px, -2px, 8px)
+        rotateX(2deg)
+        rotateY(6deg)
+        rotateZ(-.3deg);
+    }
+  }
+
+
+  /* =========================================================
+     LUCES CÁLIDAS
+     ========================================================= */
+
+  #luces {
+    position: absolute;
+    inset: -20%;
+    z-index: 10;
+
+    pointer-events: none;
+    mix-blend-mode: screen;
+
+    background:
+      radial-gradient(
+        ellipse at 15% 15%,
+        #ffcf7a35,
+        transparent 35%
+      ),
+      radial-gradient(
+        ellipse at 85% 75%,
+        #ffab5a24,
+        transparent 32%
+      ),
+      linear-gradient(
+        115deg,
+        transparent 35%,
+        #ffe6b800 43%,
+        #ffe6b821 49%,
+        #ffe6b800 55%,
+        transparent 65%
+      );
+
+    animation: luzMovil 17s ease-in-out infinite alternate;
+  }
+
+  @keyframes luzMovil {
+    from {
+      transform: translateX(-10%) rotate(-7deg);
+      opacity: .35;
+    }
+
+    to {
+      transform: translateX(10%) rotate(5deg);
+      opacity: .80;
+    }
+  }
+
+
+  /* =========================================================
+     PARTÍCULAS
+     ========================================================= */
+
+  #particulas {
+    position: absolute;
+    inset: 0;
+    z-index: 11;
+
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .particula {
+    position: absolute;
+    border-radius: 50%;
+
+    background: #ffe8bb;
+    box-shadow: 0 0 10px #ffdf9b;
+
+    animation: polvo linear infinite;
+  }
+
+  @keyframes polvo {
+    0% {
+      transform: translate(0, 25px);
+      opacity: 0;
+    }
+
+    25% {
+      opacity: .50;
+    }
+
+    75% {
+      opacity: .25;
+    }
+
+    100% {
+      transform: translate(55px, -110px);
+      opacity: 0;
+    }
+  }
+
+
+  /* =========================================================
+     VIÑETA: OSCURECIMIENTO SUAVE DE LOS BORDES
+     ========================================================= */
+
+  #vineta {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+
+    pointer-events: none;
+    box-shadow: inset 0 0 80px 8px #0006;
+  }
+
+
+  /* =========================================================
+     TÍTULO SIN FRANJA DE FONDO
+     ========================================================= */
+
+  header {
+    position: absolute;
+    top: 20px;
+    left: 26px;
+    z-index: 30;
+
+    margin: 0;
+    padding: 0;
+
+    background: transparent;
+    pointer-events: none;
+  }
+
+  header h1 {
+    margin: 0;
+
+    color: #f8ead4;
+    font-family: Georgia, serif;
+    font-size: clamp(25px, 3vw, 43px);
+    font-weight: normal;
+    font-style: italic;
+    line-height: 1.15;
+
+    text-shadow: 0 2px 16px #000b;
+  }
+
+  header span {
+    display: none;
+  }
+
+
+  /* =========================================================
+     COMENTARIO Y QR SIN FRANJA INFERIOR
+     ========================================================= */
+
+  footer {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 30;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    padding: 20px 26px;
+
+    background: transparent;
+    pointer-events: none;
+  }
+
+  #burbuja {
+    min-width: 0;
+    max-width: min(620px, calc(100% - 185px));
+
+    padding: 13px 20px;
+
+    background: #fff5e9ed;
+    color: #332a23;
+    border-radius: 20px 20px 20px 5px;
+
+    box-shadow: 0 10px 35px #0004;
+
+    opacity: 0;
+    transform: translateY(7px);
+
+    transition:
+      opacity .6s ease,
+      transform .6s ease;
+  }
+
+  #burbuja.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #comentario {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+
+    font-size: clamp(16px, 1.6vw, 23px);
+    line-height: 1.3;
+  }
+
+  #autor {
+    margin-top: 5px;
+
+    color: #846748;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  #invitacion {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    flex-shrink: 0;
+    margin-left: auto;
+
+    pointer-events: auto;
+  }
+
+  #invitacion span {
+    color: #fff3dd;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: right;
+
+    text-shadow: 0 2px 8px #000;
+  }
+
+  #qr {
+    display: block;
+
+    width: 100px;
+    height: 100px;
+    padding: 6px;
+
+    object-fit: contain;
+    background: white;
+    border-radius: 10px;
+  }
+
+
+  /* =========================================================
+     PANTALLAS PEQUEÑAS
+     ========================================================= */
+
+  @media (max-width: 700px) {
+    header {
+      top: 16px;
+      left: 16px;
+    }
+
+    footer {
+      gap: 12px;
+      padding: 14px;
+    }
+
+    #burbuja {
+      max-width: calc(100% - 100px);
+      padding: 10px 13px;
+    }
+
+    #invitacion span {
+      display: none;
+    }
+
+    #qr {
+      width: 76px;
+      height: 76px;
+    }
+  }
+
+
+  /* =========================================================
+     PREFERENCIA DE MOVIMIENTO REDUCIDO
+     ========================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .tarjeta-superficie,
+    #luces,
+    .particula {
+      animation: none;
+    }
+
+    /*
+      El JavaScript establece la transición de las tarjetas
+      en línea; aquí se reemplaza cuando el usuario solicita
+      movimiento reducido.
+    */
+    .voladora {
+      transition-duration: 300ms !important;
+    }
+
+    #burbuja {
+      transition-duration: 150ms;
+    }
+
+    #luces {
+      opacity: .50;
+    }
+
+    .particula {
+      opacity: .20;
+    }
+  }
+  /* =========================================================
+   INVITACIÓN CON QR · FIJA SOBRE LA PRESENTACIÓN
+   ========================================================= */
+
+.invitacion-qr {
+  --ancho-invitacion: clamp(160px, 13vw, 230px);
+
+  position: absolute;
+  right: clamp(18px, 2.3vw, 44px);
+  bottom: clamp(18px, 2.8vh, 36px);
+  z-index: 40;
+
+  width: var(--ancho-invitacion);
+  padding: 17px 15px 14px;
+
+  border: 1px solid rgba(224, 196, 151, .30);
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237, 210, 169, .07),
+      transparent 55%
+    ),
+    rgba(24, 22, 18, .94);
+
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, .35),
+    inset 0 1px 0 rgba(255, 240, 216, .06);
+
+  color: #f5e4cb;
+  text-align: center;
+}
+
+/* Pequeña línea de luz en el borde superior. */
+.invitacion-qr::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 23%;
+  right: 23%;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(240, 214, 172, .75),
+    transparent
+  );
+
+  pointer-events: none;
+}
+
+.invitacion-qr__encabezado {
+  margin: 0 0 13px;
+
+  color: #dfc397;
+  font-family: Arial, sans-serif;
+  font-size: clamp(9px, .65vw, 12px);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: .16em;
+}
+
+/* El área del QR permanece blanca, opaca y sin efectos. */
+.invitacion-qr__codigo {
+  display: block;
+  width: 100%;
+  padding: 9px;
+
+  border: 1px solid rgba(255, 255, 255, .75);
+  border-radius: 10px;
+
+  background: #fff;
+  text-decoration: none;
+}
+
+.invitacion-qr__codigo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+
+  object-fit: contain;
+  background: #fff;
+
+  /* Sin filtros ni transparencia sobre el código. */
+  filter: none;
+  opacity: 1;
+  transform: none;
+}
+
+.invitacion-qr__codigo:focus-visible {
+  outline: 2px solid #e5c797;
+  outline-offset: 5px;
+}
+
+.invitacion-qr__mensaje {
+  margin: 13px 0 0;
+
+  color: #ead9bd;
+  font-family: Georgia, serif;
+  font-size: clamp(13px, 1vw, 17px);
+  font-weight: normal;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.invitacion-qr__detalle {
+  display: block;
+  width: 24px;
+  height: 1px;
+  margin: 13px auto 0;
+
+  background: rgba(224, 196, 151, .45);
+}
+
+/* Versión compacta para probar desde un celular. */
+@media (max-width: 700px) {
+  .invitacion-qr {
+    --ancho-invitacion: 142px;
+
+    right: 14px;
+    bottom: 14px;
+
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .invitacion-qr__encabezado {
+    margin-bottom: 9px;
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+
+  .invitacion-qr__codigo {
+    padding: 7px;
+    border-radius: 8px;
+  }
+
+  .invitacion-qr__mensaje {
+    margin-top: 10px;
+    font-size: 12px;
+  }
+
+  .invitacion-qr__detalle {
+    margin-top: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div id="pagina">
+  <header>
+    <h1></h1>
+    <span>Recuerdos de una noche especial</span>
+  </header>
+
+  <main id="escenario">
+    <div id="estado">Esperando las fotos de esta noche…</div>
+    <div id="luces"></div>
+    <div id="particulas"></div>
+    <div id="vineta"></div>
+  </main>
+
+  <aside class="invitacion-qr" aria-label="Compartí tus fotos">
+   <p class="invitacion-qr__encabezado">
+     COMPARTÍ TU MIRADA
+   </p>
+
+   <a
+     class="invitacion-qr__codigo"
+     href="https://script.google.com/macros/s/AKfycbwSSM_rqGZwAXN2xffPKCXgZh9qCwG4z_xU1rwvU0mEAS9LbeWTcVzv-JUuH5aym23Cpw/exec"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="Abrir la página para subir fotos"
+   >
+     <img
+       src="qr-code.png"
+       alt="Escaneá este código para subir tus fotos"
+     >
+   </a>
+
+   <p class="invitacion-qr__mensaje">
+     Tus fotos también<br>
+     cuentan esta historia
+   </p>
+
+   <span class="invitacion-qr__detalle" aria-hidden="true"></span>
+  </aside>
+</div>
+<script>
+(() => {
+  "use strict";
+
+  const URL_FOTOS =
+    "https://script.google.com/macros/s/AKfycbwuncXnmEIhWoQUD20MGCkKd2BhLOZ3NWRXqXaeQ8Fxqu3RGtTD9JM_RZDxl6ojnBQ1oQ/exec";
+
+  const CONFIG = {
+    fotosVisibles: 8,
+    viaje: 6500,
+    pausa: 6500,
+    refresco: 30000,
+    timeoutImagen: 12000,
+    timeoutAlbum: 20000
+  };
+
+  const escenario = document.getElementById("escenario");
+  const estado = document.getElementById("estado");
+
+  if (!escenario || !estado) {
+    console.error("Faltan los elementos escenario y estado.");
+    return;
+  }
+
+  // Estos elementos dejan de formar parte de la presentación.
+  document.querySelectorAll(
+    "#burbuja, #invitacion, #qr"
+  ).forEach(elemento => elemento.remove());
+
+  const footer = document.querySelector("footer");
+  if (footer) footer.remove();
+
+  document.getElementById("mundo")?.remove();
+  document.getElementById("estilos-fotos-colgadas")?.remove();
+  document.getElementById("estilos-drive-directo")?.remove();
+
+  const estilos = document.createElement("style");
+  estilos.id = "estilos-drive-directo";
+
+  estilos.textContent = `
+    #escenario {
+      position: absolute;
+      inset: 0;
+      perspective: none;
+      overflow: hidden;
+    }
+
+    #mundo {
+      position: absolute;
+      inset: auto;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      z-index: 3;
+      transform-origin: 0 0;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .foto-drive {
+      position: absolute;
+      margin: 0;
+      padding: 0;
+    }
+
+    .foto-drive__conjunto {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      will-change: transform;
+    }
+
+    .foto-drive__hilo {
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        rgba(235,218,186,.03),
+        rgba(235,218,186,.45)
+      );
+      pointer-events: none;
+    }
+
+    .foto-drive__union {
+      position: absolute;
+      left: calc(50% - 3px);
+      top: -5px;
+      width: 6px;
+      height: 10px;
+      z-index: 2;
+      border-radius: 3px;
+      background: #b49b73;
+    }
+
+    .foto-drive__superficie {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 15px;
+      background: #211e19;
+      box-shadow: 0 18px 50px #0006;
+    }
+
+    .foto-drive__superficie img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: sepia(.06) saturate(.95);
+    }
+
+    .foto-drive__superficie::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px #fff2;
+      background: linear-gradient(
+        115deg, #fff1, transparent 45%
+      );
+    }
+  `;
+
+  document.head.appendChild(estilos);
+
+  const mundo = document.createElement("div");
+  mundo.id = "mundo";
+  escenario.appendChild(mundo);
+
+  const movimientoReducido = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  let fotos = [];
+  let tarjetas = [];
+  let actual = null;
+
+  let cola = [];
+  const mostradas = new Set();
+
+  let ancho = escenario.clientWidth;
+  let alto = escenario.clientHeight;
+
+  let camara = { x: 0, y: 0, zoom: 1 };
+
+  let contadorJsonp = 0;
+  let ocupado = false;
+  let resizePendiente = false;
+  let resizeTimer;
+  let proximaConsulta = 0;
+
+  const esperar = ms =>
+    new Promise(resolve => setTimeout(resolve, ms));
+
+  const suavizar = t => t * t * (3 - 2 * t);
+  const interpolar = (a, b, t) => a + (b - a) * t;
+
+  function mezclar(lista) {
+    const copia = [...lista];
+
+    for (let i = copia.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+
+    return copia;
+  }
+
+  function consultarDrive() {
+    return new Promise((resolve, reject) => {
+      const callback = "driveFotosCallback" + (++contadorJsonp);
+      const script = document.createElement("script");
+      let terminado = false;
+
+      function limpiar() {
+        clearTimeout(timeout);
+        script.remove();
+
+        window[callback] = () => {};
+
+        setTimeout(() => {
+          delete window[callback];
+        }, 60000);
+      }
+
+      function fallar(error) {
+        if (terminado) return;
+        terminado = true;
+        limpiar();
+        reject(error);
+      }
+
+      const timeout = setTimeout(() => {
+        fallar(new Error("El servidor tardó demasiado en responder."));
+      }, CONFIG.timeoutAlbum);
+
+      window[callback] = datos => {
+        if (terminado) return;
+
+        try {
+          if (!Array.isArray(datos?.fotos)) {
+            throw new Error("Respuesta del servidor no válida.");
+          }
+
+          const lista = [
+            ...new Map(
+              datos.fotos
+                .filter(f =>
+                  f &&
+                  typeof f.url === "string" &&
+                  f.url.trim()
+                )
+                .map(f => [f.url, { url: f.url }])
+            ).values()
+          ];
+
+          terminado = true;
+          limpiar();
+          resolve(lista);
+
+        } catch (error) {
+          fallar(error);
+        }
+      };
+
+      script.onerror = () => {
+        fallar(new Error("No se pudo consultar la carpeta."));
+      };
+
+      try {
+        const url = new URL(URL_FOTOS);
+        url.searchParams.set("callback", callback);
+        url.searchParams.set("_", Date.now());
+
+        script.src = url.toString();
+        document.body.appendChild(script);
+
+      } catch (error) {
+        fallar(error);
+      }
+    });
+  }
+
+  function cargarImagen(foto) {
+    return new Promise(resolve => {
+      const imagen = new Image();
+      let terminado = false;
+
+      function finalizar(resultado) {
+        if (terminado) return;
+        terminado = true;
+
+        clearTimeout(timeout);
+        imagen.onload = null;
+        imagen.onerror = null;
+
+        resolve(resultado);
+      }
+
+      const timeout = setTimeout(() => {
+        console.warn("Imagen sin respuesta:", foto.url);
+        finalizar(null);
+      }, CONFIG.timeoutImagen);
+
+      imagen.alt = "Recuerdos de la fiesta";
+      imagen.onload = () => finalizar(imagen);
+
+      imagen.onerror = () => {
+        console.warn("No se pudo abrir:", foto.url);
+        finalizar(null);
+      };
+
+      imagen.src = foto.url;
+    });
+  }
+
+  function siguienteFoto() {
+    const disponibles = new Map(fotos.map(f => [f.url, f]));
+
+    if (actual) mostradas.add(actual.foto.url);
+
+    for (const url of mostradas) {
+      if (!disponibles.has(url)) mostradas.delete(url);
+    }
+
+    cola = cola.filter(url =>
+      disponibles.has(url) && !mostradas.has(url)
+    );
+
+    const pendientes = new Set(cola);
+
+    cola.push(
+      ...mezclar(
+        fotos.filter(f =>
+          !mostradas.has(f.url) && !pendientes.has(f.url)
+        )
+      ).map(f => f.url)
+    );
+
+    if (!cola.length) {
+      mostradas.clear();
+
+      if (fotos.length > 1 && actual) {
+        mostradas.add(actual.foto.url);
+      }
+
+      cola = mezclar(
+        fotos.filter(f => !mostradas.has(f.url))
+      ).map(f => f.url);
+    }
+
+    return disponibles.get(cola.shift()) || null;
+  }
+
+  function ajustarTarjeta(tarjeta) {
+    const proporcion =
+      tarjeta.imagen.naturalWidth /
+      tarjeta.imagen.naturalHeight;
+
+    let w = ancho * .64;
+    let h = w / proporcion;
+
+    if (h > alto * .68) {
+      h = alto * .68;
+      w = h * proporcion;
+    }
+
+    tarjeta.ancho = w;
+    tarjeta.alto = h;
+
+    tarjeta.elemento.style.width = w + "px";
+    tarjeta.elemento.style.height = h + "px";
+
+    const posiciones = [
+      [0, 0],
+      [1.05, -.28],
+      [-.98, .30],
+      [.38, -1.12],
+      [-.48, 1.12],
+      [1.32, .95],
+      [-1.34, -.91],
+      [.98, -1.34]
+    ];
+
+    const [x, y] = posiciones[tarjeta.slot];
+
+    tarjeta.x = x * ancho;
+    tarjeta.y = y * alto;
+
+    tarjeta.elemento.style.transform = `
+      translate(${tarjeta.x}px, ${tarjeta.y}px)
+      translate(-50%, -50%)
+      rotate(${tarjeta.inclinacion}deg)
+    `;
+
+    const largoHilo = Math.max(alto * 1.65, 700);
+
+    tarjeta.hilo.style.height = largoHilo + "px";
+
+    tarjeta.conjunto.style.transformOrigin =
+      `50% ${-largoHilo}px`;
+  }
+
+  function iniciarBalanceo(tarjeta) {
+    tarjeta.balanceo?.cancel();
+    tarjeta.balanceo = null;
+
+    if (movimientoReducido.matches) return;
+
+    const amplitud = .55 + Math.random() * .25;
+    const duracion = 9000 + Math.random() * 5000;
+
+    tarjeta.balanceo = tarjeta.conjunto.animate(
+      [
+        { transform: `rotate(${-amplitud}deg)` },
+        { transform: `rotate(${amplitud}deg)` },
+        { transform: `rotate(${-amplitud}deg)` }
+      ],
+      {
+        duration: duracion,
+        iterations: Infinity,
+        easing: "ease-in-out"
+      }
+    );
+
+    tarjeta.balanceo.currentTime = Math.random() * duracion;
+  }
+
+  function crearTarjeta(foto, imagen, slot) {
+    const elemento = document.createElement("figure");
+    elemento.className = "foto-drive";
+
+    const conjunto = document.createElement("div");
+    conjunto.className = "foto-drive__conjunto";
+
+    const hilo = document.createElement("div");
+    hilo.className = "foto-drive__hilo";
+
+    const union = document.createElement("div");
+    union.className = "foto-drive__union";
+
+    const superficie = document.createElement("div");
+    superficie.className = "foto-drive__superficie";
+
+    superficie.appendChild(imagen);
+    conjunto.append(hilo, superficie, union);
+    elemento.appendChild(conjunto);
+    mundo.appendChild(elemento);
+
+    const tarjeta = {
+      elemento,
+      conjunto,
+      hilo,
+      superficie,
+      imagen,
+      foto,
+      slot,
+      inclinacion: (Math.random() - .5) * 6,
+      blur: 2.2,
+      brillo: .72,
+      balanceo: null
+    };
+
+    ajustarTarjeta(tarjeta);
+    iniciarBalanceo(tarjeta);
+    dibujarFoco(tarjeta, 2.2, .72);
+
+    return tarjeta;
+  }
+
+  function quitarTarjeta(tarjeta) {
+    tarjeta.balanceo?.cancel();
+    tarjeta.elemento.remove();
+  }
+
+  function dibujarFoco(tarjeta, blur, brillo) {
+    tarjeta.blur = blur;
+    tarjeta.brillo = brillo;
+
+    tarjeta.superficie.style.filter =
+      `blur(${blur}px) brightness(${brillo})`;
+  }
+
+  function destinoCamara(tarjeta) {
+    return {
+      x: tarjeta.x,
+      y: tarjeta.y,
+      zoom: Math.min(
+        ancho * .72 / tarjeta.ancho,
+        alto * .66 / tarjeta.alto
+      )
+    };
+  }
+
+  function dibujarCamara() {
+    mundo.style.transform = `
+      translate(${ancho * .50}px, ${alto * .46}px)
+      scale(${camara.zoom})
+      translate(${-camara.x}px, ${-camara.y}px)
+    `;
+  }
+
+  function enfocarDirecto(tarjeta) {
+    actual = tarjeta;
+    camara = destinoCamara(tarjeta);
+    dibujarCamara();
+
+    tarjetas.forEach(t => {
+      dibujarFoco(
+        t,
+        t === tarjeta ? 0 : 2.2,
+        t === tarjeta ? 1 : .72
+      );
+    });
+
+    mostradas.add(tarjeta.foto.url);
+    estado.style.display = "none";
+  }
+
+  function viajarHasta(tarjeta) {
+    const origen = { ...camara };
+    const destino = destinoCamara(tarjeta);
+
+    const focos = tarjetas.map(t => ({
+      blur: t.blur,
+      brillo: t.brillo
+    }));
+
+    const dx = destino.x - origen.x;
+    const dy = destino.y - origen.y;
+    const distancia = Math.hypot(dx, dy) || 1;
+
+    const perpendicularX = -dy / distancia;
+    const perpendicularY = dx / distancia;
+    const curva = Math.min(ancho, alto) * .07;
+    const signo = Math.random() < .5 ? -1 : 1;
+
+    const duracion = movimientoReducido.matches
+      ? 300
+      : CONFIG.viaje;
+
+    return new Promise(resolve => {
+      const comienzo = performance.now();
+
+      function cuadro(ahora) {
+        const t = Math.min((ahora - comienzo) / duracion, 1);
+        const avance = suavizar(t);
+        const arco = Math.sin(Math.PI * avance);
+
+        camara.x =
+          interpolar(origen.x, destino.x, avance) +
+          perpendicularX * curva * arco * signo;
+
+        camara.y =
+          interpolar(origen.y, destino.y, avance) +
+          perpendicularY * curva * arco * signo;
+
+        camara.zoom =
+          interpolar(origen.zoom, destino.zoom, avance) *
+          (1 - arco * .30);
+
+        dibujarCamara();
+
+        tarjetas.forEach((item, indice) => {
+          dibujarFoco(
+            item,
+            interpolar(
+              focos[indice].blur,
+              item === tarjeta ? 0 : 2.2,
+              avance
+            ),
+            interpolar(
+              focos[indice].brillo,
+              item === tarjeta ? 1 : .72,
+              avance
+            )
+          );
+        });
+
+        if (t < 1) {
+          requestAnimationFrame(cuadro);
+        } else {
+          actual = tarjeta;
+          camara = destino;
+          dibujarCamara();
+          mostradas.add(tarjeta.foto.url);
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(cuadro);
+    });
+  }
+
+  async function obtenerTarjeta(foto) {
+    const existente = tarjetas.find(t => t.foto.url === foto.url);
+    if (existente) return existente;
+
+    const imagen = await cargarImagen(foto);
+    if (!imagen) return null;
+
+    if (tarjetas.length < CONFIG.fotosVisibles) {
+      const ocupados = new Set(tarjetas.map(t => t.slot));
+      let slot = 0;
+      while (ocupados.has(slot)) slot++;
+
+      const tarjeta = crearTarjeta(foto, imagen, slot);
+      tarjetas.push(tarjeta);
+      return tarjeta;
+    }
+
+    const candidatas = tarjetas
+      .filter(t => t !== actual)
+      .sort((a, b) =>
+        Math.hypot(b.x - camara.x, b.y - camara.y) -
+        Math.hypot(a.x - camara.x, a.y - camara.y)
+      );
+
+    const tarjeta = candidatas[0];
+    if (!tarjeta) return null;
+
+    tarjeta.superficie.replaceChild(imagen, tarjeta.imagen);
+    tarjeta.imagen = imagen;
+    tarjeta.foto = foto;
+
+    ajustarTarjeta(tarjeta);
+    dibujarFoco(tarjeta, 2.2, .72);
+
+    return tarjeta;
+  }
+
+  async function sincronizarCarpeta() {
+    const nuevas = await consultarDrive();
+    const permitidas = new Set(nuevas.map(f => f.url));
+
+    fotos = nuevas;
+
+    // Retira también las fotos borradas o movidas fuera de la carpeta.
+    tarjetas = tarjetas.filter(tarjeta => {
+      if (permitidas.has(tarjeta.foto.url)) return true;
+
+      if (tarjeta === actual) actual = null;
+      quitarTarjeta(tarjeta);
+      return false;
+    });
+
+    if (!fotos.length) {
+      actual = null;
+      cola = [];
+      mostradas.clear();
+
+      estado.style.display = "grid";
+      estado.textContent = "Esperando fotos en la carpeta del servidor…";
+      return;
+    }
+
+    /*
+      Prepara una composición inicial.
+      Las demás fotos se incorporan cuando llega su turno.
+    */
+    if (!tarjetas.length) {
+      const candidatas = mezclar(fotos).slice(
+        0,
+        CONFIG.fotosVisibles
+      );
+
+      const resultados = await Promise.all(
+        candidatas.map(async foto => ({
+          foto,
+          imagen: await cargarImagen(foto)
+        }))
+      );
+
+      for (const resultado of resultados) {
+        if (!resultado.imagen) continue;
+
+        tarjetas.push(
+          crearTarjeta(
+            resultado.foto,
+            resultado.imagen,
+            tarjetas.length
+          )
+        );
+      }
+    }
+
+    if (!actual && tarjetas.length) {
+      enfocarDirecto(tarjetas[0]);
+    }
+
+    if (!tarjetas.length) {
+      estado.style.display = "grid";
+      estado.textContent =
+        "Se encontraron fotos, pero no se pudieron abrir.";
+    }
+  }
+
+  function reajustar() {
+    ancho = escenario.clientWidth;
+    alto = escenario.clientHeight;
+
+    tarjetas.forEach(ajustarTarjeta);
+
+    if (actual) enfocarDirecto(actual);
+  }
+
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+
+    resizeTimer = setTimeout(() => {
+      if (ocupado) {
+        resizePendiente = true;
+      } else {
+        reajustar();
+      }
+    }, 150);
+  });
+
+  movimientoReducido.addEventListener("change", () => {
+    tarjetas.forEach(iniciarBalanceo);
+  });
+
+  /*
+    Un solo ciclo coordina las consultas y los viajes.
+    No modifica la galería mientras la cámara está viajando.
+  */
+  async function ciclo() {
+    if (document.hidden) {
+      setTimeout(ciclo, 1000);
+      return;
+    }
+
+    ocupado = true;
+
+    try {
+      if (Date.now() >= proximaConsulta) {
+        try {
+          await sincronizarCarpeta();
+        } catch (error) {
+          console.error("Error al consultar el servidor:", error);
+
+          if (!tarjetas.length) {
+            estado.style.display = "grid";
+            estado.textContent =
+              "No se pudo conectar con el servidor. Reintentando…";
+          }
+        }
+
+        proximaConsulta = Date.now() + CONFIG.refresco;
+      }
+
+      if (fotos.length && tarjetas.length) {
+        const siguiente = siguienteFoto();
+
+        if (siguiente && siguiente.url !== actual?.foto.url) {
+          const tarjeta = await obtenerTarjeta(siguiente);
+
+          if (tarjeta) {
+            await viajarHasta(tarjeta);
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error("Error en la presentación:", error);
+
+    } finally {
+      ocupado = false;
+
+      if (resizePendiente) {
+        resizePendiente = false;
+        reajustar();
+      }
+
+      setTimeout(
+        ciclo,
+        tarjetas.length ? CONFIG.pausa : 5000
+      );
+    }
+  }
+
+  // Mantiene las partículas del diseño sin duplicarlas.
+  const contenedorParticulas = document.getElementById("particulas");
+
+  if (contenedorParticulas) {
+    contenedorParticulas.replaceChildren();
+
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement("i");
+      p.className = "particula";
+
+      const tamano = 1 + Math.random() * 3;
+
+      Object.assign(p.style, {
+        width: tamano + "px",
+        height: tamano + "px",
+        left: Math.random() * 100 + "%",
+        top: Math.random() * 100 + "%",
+        animationDuration: (10 + Math.random() * 12) + "s",
+        animationDelay: (-Math.random() * 20) + "s"
+      });
+
+      contenedorParticulas.appendChild(p);
+    }
+  }
+
+  estado.style.display = "grid";
+  estado.textContent = "Esperando fotos…";
+
+  ciclo();
+})();
+</script>
+
+</body>
+</html>
